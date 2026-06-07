@@ -11,7 +11,8 @@ FROM node:18-alpine
 WORKDIR /app/backend
 
 # Install docker-cli so portScanner can run 'docker ps'
-RUN apk add --no-cache docker-cli
+# Install libc6-compat and gcompat so the cloudflared glibc binary can run on Alpine
+RUN apk add --no-cache docker-cli libc6-compat gcompat
 
 COPY backend/package*.json ./
 RUN npm install
