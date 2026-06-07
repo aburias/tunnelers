@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Compiled Frontend
+frontend/dist/
+
+# Persistent Tunnel State
+backend/data/
+data/
+
+# Environment
+.env
+.env.local
+
+# Cloudflared binaries
+*.exe
+cloudflared
+cloudflared.exe
+backend/cloudflared*
+
+# Cloudflare Auth
+.cloudflared/
+cert.pem
+
+# OS generated files
+.DS_Store
+Thumbs.db

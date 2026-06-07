@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  nexus-tunnels:
+    build: .
+    container_name: nexus-tunnels
+    restart: always
+    ports:
+      - "3001:3001"
+    volumes:
+      # Mount the Docker socket to read container names and ports
+      - //var/run/docker.sock:/var/run/docker.sock
+      # Mount the Cloudflare certs to persist logins
+      - ~/.cloudflared:/root/.cloudflared
+      # Mount data folder for state persistence
+      - ./data:/app/backend/data
+    environment:
+      - RUNNING_IN_DOCKER=true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
