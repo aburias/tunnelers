@@ -23,8 +23,11 @@ const TunnelCard = ({ port, processName, status, url, error, onStart, onStop, pr
     <div className={`glass-panel ${isActive ? 'active' : ''} animate-fade-in`}>
       <div className="panel-header">
         <div className="port-info">
-          <div className="port-number">
+          <div className="port-number" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             Port {port}
+            <a href={`http://localhost:${port}`} target="_blank" rel="noreferrer" title="Open Localhost" style={{ color: 'var(--text-secondary)', display: 'flex' }}>
+              <ExternalLink size={14} />
+            </a>
             <span className="process-name">{processName}</span>
           </div>
         </div>

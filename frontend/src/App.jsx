@@ -10,6 +10,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [dockerOnly, setDockerOnly] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Cloudflare Settings
   const [provider, setProvider] = useState(() => localStorage.getItem('nexus_provider') || 'cloudflare');
@@ -133,6 +134,11 @@ function App() {
   const tunneledPorts = new Set(tunnels.map(t => t.port));
   const activeTunnels = tunnels;
   const availablePorts = ports.filter(p => !tunneledPorts.has(p.port));
+  const filteredAvailablePorts = availablePorts.filter(p => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return p.port.toString().includes(query) || (p.process && p.process.toLowerCase().includes(query));
+  });
 
   return (
     <div className="app-container">
@@ -242,8 +248,8 @@ function App() {
             </div>
           </div>
 
-          <div>
-            <div className="section-title" style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <Network size={20} color="var(--accent)" />
                 Available Local Ports
@@ -258,13 +264,30 @@ function App() {
                 🐳 Docker only
               </label>
             </div>
-            <div className="list-container">
-              {availablePorts.length === 0 ? (
+            
+            <input
+              type="text"
+              placeholder="Search by port or process name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                borderRadius: '8px',
+                border: '1px solid var(--glass-border)',
+                background: 'rgba(0,0,0,0.2)',
+                color: 'white',
+                fontSize: '0.95rem'
+              }}
+            />
+
+            <div className="list-container" style={{ marginTop: 0 }}>
+              {filteredAvailablePorts.length === 0 ? (
                 <div className="empty-state">
-                  <p>No listening ports detected.</p>
+                  <p>No listening ports matched your search.</p>
                 </div>
               ) : (
-                availablePorts.map(portInfo => (
+                filteredAvailablePorts.map(portInfo => (
                   <TunnelCard
                     key={portInfo.port}
                     port={portInfo.port}
