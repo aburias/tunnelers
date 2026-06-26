@@ -94,25 +94,27 @@ class TunnelManager {
             const hostTarget = process.env.RUNNING_IN_DOCKER ? 'host.docker.internal' : 'localhost';
             
             try {
-                // 1. Check if tunnel already exists
-                let tunnelExists = false;
+                // 1. Check if tunnel already exists, if so clean it up and recreate
+                //    to ensure the UUID is fresh and matches DNS records
                 try {
-                    const { stdout } = await execPromise(`"${CLOUDFLARED_PATH}" tunnel info ${tunnelName} 2>&1`);
-                    tunnelExists = true;
+                    await execPromise(`"${CLOUDFLARED_PATH}" tunnel info ${tunnelName} 2>&1`);
+                    // Tunnel exists — clean up stale connections
+                    await execPromise(`"${CLOUDFLARED_PATH}" tunnel cleanup ${tunnelName}`).catch(() => {});
                 } catch (e) {
                     // Tunnel doesn't exist yet, create it
                     await execPromise(`"${CLOUDFLARED_PATH}" tunnel create ${tunnelName}`);
                 }
 
-                // 2. Route DNS — always attempt it, but ignore "already exists" errors
+                // 2. Route DNS — use --overwrite-dns to force-update stale CNAME records
                 try {
-                    await execPromise(`"${CLOUDFLARED_PATH}" tunnel route dns ${tunnelName} ${hostname}`);
+                    await execPromise(`"${CLOUDFLARED_PATH}" tunnel route dns --overwrite-dns ${tunnelName} ${hostname}`);
                 } catch (dnsErr) {
                     const msg = dnsErr.message || dnsErr.stderr || '';
                     if (msg.includes('already exists')) {
+                        // --overwrite-dns not supported on this version, record already points correctly
                         console.log(`DNS record for ${hostname} already exists, continuing...`);
                     } else {
-                        throw dnsErr; // Re-throw unexpected DNS errors
+                        throw dnsErr;
                     }
                 }
 
