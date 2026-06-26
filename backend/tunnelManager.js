@@ -106,9 +106,16 @@ class TunnelManager {
                     await execPromise(`"${CLOUDFLARED_PATH}" tunnel create ${tunnelName}`);
                 }
 
-                // 2. Route DNS only if tunnel was just created (skip if it already exists to avoid DNS flush)
-                if (!tunnelExists) {
+                // 2. Route DNS — always attempt it, but ignore "already exists" errors
+                try {
                     await execPromise(`"${CLOUDFLARED_PATH}" tunnel route dns ${tunnelName} ${hostname}`);
+                } catch (dnsErr) {
+                    const msg = dnsErr.message || dnsErr.stderr || '';
+                    if (msg.includes('already exists')) {
+                        console.log(`DNS record for ${hostname} already exists, continuing...`);
+                    } else {
+                        throw dnsErr; // Re-throw unexpected DNS errors
+                    }
                 }
 
                 // 3. Run tunnel
