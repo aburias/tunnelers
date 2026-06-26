@@ -11,9 +11,7 @@ class TunnelManager {
     constructor() {
         this.tunnels = new Map();
         this.onUpdate = null;
-        
-        // Give cloudflared a moment to be downloaded if it's the first boot
-        setTimeout(() => this.loadState(), 3000);
+        // loadState() is called explicitly by server.js after cloudflared is downloaded
     }
 
     loadState() {

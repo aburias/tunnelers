@@ -119,6 +119,8 @@ downloadCloudflared()
     .then(() => {
         app.listen(PORT, () => {
             console.log(`Backend server running on http://localhost:${PORT}`);
+            // Now that cloudflared is downloaded and server is ready, restore saved tunnels
+            tunnelManager.loadState();
         });
     })
     .catch((err) => {
